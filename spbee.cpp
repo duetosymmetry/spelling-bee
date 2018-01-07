@@ -12,54 +12,63 @@ bool validInput(const std::string & s) {
   return all_of(s.begin(), s.end(), isalpha);
 }
 
+void downSortUniq(std::string & s) {
+  // downcase all the characters in s
+  std::transform(s.begin(), s.end(),
+                 s.begin(), tolower);
+
+  // sort them all and erase duplicates
+  std::sort(s.begin(), s.end());
+  s.erase(std::unique(s.begin(), s.end()),
+          s.end());
+};
+
 class puzzleTester {
 public:
-  puzzleTester(int nmin, const std::string &input) :
-    nmin(nmin), input(input), allLower(input) {
+  puzzleTester(const std::string &input) :
+    input(input), allLower(input) {
 
-    // downcase all the characters in allLower
-    std::transform(allLower.begin(), allLower.end(),
-                   allLower.begin(), tolower);
-
-    // sort them all and erase duplicates
-    std::sort(allLower.begin(), allLower.end());
-    allLower.erase(std::unique(allLower.begin(), allLower.end()),
-                   allLower.end());
+    // downcase, sort, and unique all the characters in allLower
+    downSortUniq(allLower);
 
     // copy the uppercase (required) characters into req
     int nreq = std::count_if(input.begin(), input.end(), isupper);
     reqLower.assign(nreq, 'A');
     std::copy_if(input.begin(), input.end(), reqLower.begin(), isupper);
 
-    // downcase them
-    std::transform(reqLower.begin(), reqLower.end(),
-                   reqLower.begin(), tolower);
-
-    // sort them all and erase duplicates
-    std::sort(reqLower.begin(), reqLower.end());
-    reqLower.erase(std::unique(reqLower.begin(), reqLower.end()),
-                   reqLower.end());
+    // downcase, sort, and unique all the characters in reqLower
+    downSortUniq(reqLower);
 
   }
 
+  // Assume the input 'test' has already been converted to lower case
+  // and sorted
   bool pass(const std::string &test) const {
-    if (test.length() < nmin)
-      return false;
-
-
-
-    return true;
+    return std::includes(    test.begin(),     test.end(),
+                         reqLower.begin(), reqLower.end()) &&
+           std::includes(allLower.begin(), allLower.end(),
+                             test.begin(),     test.end());
   }
 
-  void report() const {
-    std::cout << "nmin=" << nmin << "; input=" << input
+  // Functor interface
+  bool operator()(const std::string &test) const {
+    return pass(test);
+  }
+
+  // Test whether all letters appear in the word
+  bool all(const std::string &test) const {
+    return std::includes(    test.begin(),     test.end(),
+                         allLower.begin(), allLower.end());
+  }
+
+  void debug() const {
+    std::cout << "; input=" << input
               << "; allLower=" << allLower
               << "; reqLower=" << reqLower
               << std::endl;
   };
 
 private:
-  const int nmin; // the minimum length of a word to pass the test
   const std::string input; // the original input
   std::string allLower; // all the letters, lowercase, unique
   std::string reqLower; // all the required letters, lowercase, unique
@@ -123,17 +132,30 @@ int main(int argc, char* argv[]) {
                   words.end());
 
       for (const auto& word : words) {
-        puzzleTesters.push_back(puzzleTester(nmin, word));
-        puzzleTesters.back().report();
+        puzzleTesters.push_back(puzzleTester(word));
       }
 
     }
 
+    // Go through the dictionary file in one pass
+
     std::string line;
 
-    // for(int i=0; (i<10) && std::getline(dictFile, line); i++) {
-    //   std::cout << line << std::endl;
-    // }
+    while (std::getline(dictFile, line)) {
+      std::string sortedDownLine = line;
+
+      if (line.length() < nmin)
+        continue;
+
+      // downcase, sort, and remove dups
+      downSortUniq(sortedDownLine);
+
+      if (std::any_of(puzzleTesters.begin(), puzzleTesters.end(),
+                      [&](const puzzleTester & t){ return t(sortedDownLine); })) {
+        std::cout << line << std::endl;
+      }
+
+    }
 
     dictFile.close();
 
