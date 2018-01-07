@@ -12,25 +12,58 @@ bool validInput(const std::string & s) {
   return all_of(s.begin(), s.end(), isalpha);
 }
 
-// Check if a word passes the criteria:
-// 1. longer than nmin
-// 2. consists of only the letters in s
-// 3. contains all the required letters in s (capitalized ones)
-// Note, s should be valid and sorted, so all the capitalized letters are adjacent
-bool pass(int nmin, const std::string & s, const std::string & test) {
-  std::string all = s;
-  std::transform(all.begin(), all.end(), all.begin(), tolower);
+class puzzleTester {
+public:
+  puzzleTester(int nmin, const std::string &input) :
+    nmin(nmin), input(input), allLower(input) {
 
-  int nreq = std::count_if(s.begin(), s.end(), isupper);
-  auto firstReq = std::find_if(s.begin(), s.end(), isupper);
+    // downcase all the characters in allLower
+    std::transform(allLower.begin(), allLower.end(),
+                   allLower.begin(), tolower);
 
-  std::string reqd(firstReq, firstReq+nreq);
+    // sort them all and erase duplicates
+    std::sort(allLower.begin(), allLower.end());
+    allLower.erase(std::unique(allLower.begin(), allLower.end()),
+                   allLower.end());
 
-  std::cout << s << " " << all << " " << reqd << std::endl;
+    // copy the uppercase (required) characters into req
+    int nreq = std::count_if(input.begin(), input.end(), isupper);
+    reqLower.assign(nreq, 'A');
+    std::copy_if(input.begin(), input.end(), reqLower.begin(), isupper);
 
-  return true;
+    // downcase them
+    std::transform(reqLower.begin(), reqLower.end(),
+                   reqLower.begin(), tolower);
 
-}
+    // sort them all and erase duplicates
+    std::sort(reqLower.begin(), reqLower.end());
+    reqLower.erase(std::unique(reqLower.begin(), reqLower.end()),
+                   reqLower.end());
+
+  }
+
+  bool pass(const std::string &test) const {
+    if (test.length() < nmin)
+      return false;
+
+
+
+    return true;
+  }
+
+  void report() const {
+    std::cout << "nmin=" << nmin << "; input=" << input
+              << "; allLower=" << allLower
+              << "; reqLower=" << reqLower
+              << std::endl;
+  };
+
+private:
+  const int nmin; // the minimum length of a word to pass the test
+  const std::string input; // the original input
+  std::string allLower; // all the letters, lowercase, unique
+  std::string reqLower; // all the required letters, lowercase, unique
+};
 
 int main(int argc, char* argv[]) {
   try {
@@ -39,6 +72,7 @@ int main(int argc, char* argv[]) {
     std::string dict;
     std::ifstream dictFile;
     std::vector<std::string> words;
+    std::vector<puzzleTester> puzzleTesters;
 
     cxxopts::Options options(argv[0], "Spelling Bee puzzle solver");
     options
@@ -48,7 +82,8 @@ int main(int argc, char* argv[]) {
     options.add_options()
       ("d,dict", "File", cxxopts::value<std::string>()
        ->default_value("/usr/share/dict/words"), "FILE")
-      ("n,nmin", "An integer", cxxopts::value<int>()->default_value("5"), "N")
+      ("n,nmin", "An integer", cxxopts::value<int>(nmin)
+       ->default_value("5"), "N")
       ("help", "Print help")
       ("positional",
        "Positional arguments: these are the arguments that are entered "
@@ -87,14 +122,9 @@ int main(int argc, char* argv[]) {
                     [](const std::string & word){return !validInput(word);} ),
                   words.end());
 
-      for (auto& word : words) {
-        std::sort(word.begin(), word.end());
-        word.erase(std::unique(word.begin(), word.end()),
-                   word.end());
-      }
-
       for (const auto& word : words) {
-        pass(nmin, word, "");
+        puzzleTesters.push_back(puzzleTester(nmin, word));
+        puzzleTesters.back().report();
       }
 
     }
