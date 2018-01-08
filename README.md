@@ -18,6 +18,6 @@ or any permutation thereof (as long as the capitalization doesn't change).  Word
 
 `spbee` assumes that the dictionary file is located at `/usr/share/dict/words`. You can point to a different dictionary file with `-d` or `--dict`.
 
-`spbee` will also allow you to solve generalizations of Longo's puzzle.  You can provide more or less than 7 letters; you can deman more or less than 1 mandatory letter by changing the capitalization.  You can change the minimum allowed solution length by using `-n` or `--nmin` (default is 5).
+`spbee` will also allow you to solve generalizations of Longo's puzzle.  You can provide more or less than 7 letters; you can demand more or less than 1 mandatory letter by changing the capitalization.  You can change the minimum allowed solution length by using `-n` or `--nmin` (default is 5).
 
 Finally, if you provide more than 1 string (delimited by spaces) on the command line, `spbee` will solve all of the puzzles at once, reporting all of the results (inclusive or).
