@@ -8,8 +8,8 @@
 
 // validate that string s is a valid pattern for the puzzle
 // It is only allowed to consist of [a-zA-Z]
-bool validInput(const std::string & s) {
-  return all_of(s.begin(), s.end(), isalpha);
+bool invalidInput(const std::string & s) {
+  return !all_of(s.begin(), s.end(), isalpha);
 }
 
 void downSortUniq(std::string & s) {
@@ -38,7 +38,6 @@ public:
 
     // downcase, sort, and unique all the characters in reqLower
     downSortUniq(reqLower);
-
   }
 
   // Assume the input 'test' has already been converted to lower case
@@ -89,7 +88,7 @@ int main(int argc, char* argv[]) {
       .show_positional_help();
 
     options.add_options()
-      ("d,dict", "Dictionary file path", cxxopts::value<std::string>()
+      ("d,dict", "Dictionary file path", cxxopts::value<std::string>(dict)
        ->default_value("/usr/share/dict/words"), "FILE")
       ("n,nmin", "Minimum word length", cxxopts::value<int>(nmin)
        ->default_value("5"), "N")
@@ -101,7 +100,7 @@ int main(int argc, char* argv[]) {
        " are to appear capitalized.  Example: \"Macilnt\"."
        "  Multiple puzzles can be solved by giving a string for"
        " each one.",
-       cxxopts::value<std::vector<std::string>>())
+       cxxopts::value<std::vector<std::string>>(words))
       ;
 
     options.parse_positional({"positional"});
@@ -113,34 +112,37 @@ int main(int argc, char* argv[]) {
       exit(0);
     }
 
+    if (!result.count("positional")) { // no input, nothing to do.
+      exit(0);
+    }
+
+    // Validate input words
+    for (const auto& word : words) {
+      if (invalidInput(word))
+        std::cout << "Ignoring invalid input: " << word << std::endl;
+    }
+
+    words.erase(std::remove_if(words.begin(), words.end(),
+                               invalidInput ),
+                words.end());
+
+    for (const auto& word : words) {
+      puzzleTesters.push_back(puzzleTester(word));
+    }
+
+    if (!puzzleTesters.size()) { // no valid input
+      std::cerr << "No valid inputs" << std::endl;
+      exit(1);
+    }
+
     // Open dictionary file
 
-    dict = result["d"].as<std::string>();
     dictFile.open(dict);
     if (! dictFile.good() ) {
       std::cerr << "Can't read from dictionary file '"
                 << dict << "'" << std::endl;
       exit(1);
     };
-
-    // Validate input words
-
-    if (result.count("positional")) {
-      words = result["positional"].as<std::vector<std::string>>();
-      for (const auto& word : words) {
-        if (!validInput(word))
-          std::cout << "Ignoring invalid input: " << word << std::endl;
-      }
-
-      words.erase(std::remove_if(words.begin(), words.end(),
-                    [](const std::string & word){return !validInput(word);} ),
-                  words.end());
-
-      for (const auto& word : words) {
-        puzzleTesters.push_back(puzzleTester(word));
-      }
-
-    }
 
     // Go through the dictionary file in one pass
 
@@ -166,9 +168,9 @@ int main(int argc, char* argv[]) {
 
         std::cout << line << std::endl;
       }
-
     }
 
+    // All done!
     dictFile.close();
 
   } catch (const cxxopts::OptionException& e) {
