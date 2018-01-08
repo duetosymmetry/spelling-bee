@@ -83,20 +83,25 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> words;
     std::vector<puzzleTester> puzzleTesters;
 
-    cxxopts::Options options(argv[0], "Spelling Bee puzzle solver");
+    cxxopts::Options options(argv[0], "Solver for Frank Longo's \"Spelling Bee\" puzzles");
     options
-      .positional_help("[optional args]")
+      .positional_help("[puzzle letter strings (see below)]")
       .show_positional_help();
 
     options.add_options()
-      ("d,dict", "File", cxxopts::value<std::string>()
+      ("d,dict", "Dictionary file path", cxxopts::value<std::string>()
        ->default_value("/usr/share/dict/words"), "FILE")
-      ("n,nmin", "An integer", cxxopts::value<int>(nmin)
+      ("n,nmin", "Minimum word length", cxxopts::value<int>(nmin)
        ->default_value("5"), "N")
-      ("help", "Print help")
+      ("help", "Print this help message")
       ("positional",
-       "Positional arguments: these are the arguments that are entered "
-       "without an option", cxxopts::value<std::vector<std::string>>())
+       "puzzle letter strings: For each puzzle, give a string"
+       " (without spaces, and only the characters a-z) specifying"
+       " the letters that appear in the puzzle.  Mandatory letters"
+       " are to appear capitalized.  Example: \"Macilnt\"."
+       "  Multiple puzzles can be solved by giving a string for"
+       " each one.",
+       cxxopts::value<std::vector<std::string>>())
       ;
 
     options.parse_positional({"positional"});
