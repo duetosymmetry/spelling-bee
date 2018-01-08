@@ -8,8 +8,8 @@
 
 // validate that string s is a valid pattern for the puzzle
 // It is only allowed to consist of [a-zA-Z]
-bool invalidInput(const std::string & s) {
-  return !all_of(s.begin(), s.end(), isalpha);
+bool validInput(const std::string & s) {
+  return all_of(s.begin(), s.end(), isalpha);
 }
 
 void downSortUniq(std::string & s) {
@@ -118,16 +118,10 @@ int main(int argc, char* argv[]) {
 
     // Validate input words
     for (const auto& word : words) {
-      if (invalidInput(word))
-        std::cout << "Ignoring invalid input: " << word << std::endl;
-    }
-
-    words.erase(std::remove_if(words.begin(), words.end(),
-                               invalidInput ),
-                words.end());
-
-    for (const auto& word : words) {
-      puzzleTesters.push_back(puzzleTester(word));
+      if (validInput(word))
+        puzzleTesters.push_back(puzzleTester(word));
+      else
+        std::cerr << "Ignoring invalid input: " << word << std::endl;
     }
 
     if (!puzzleTesters.size()) { // no valid input
