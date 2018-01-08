@@ -157,6 +157,13 @@ int main(int argc, char* argv[]) {
 
       if (std::any_of(puzzleTesters.begin(), puzzleTesters.end(),
                       [&](const puzzleTester & t){ return t(sortedDownLine); })) {
+
+        if (std::any_of(puzzleTesters.begin(), puzzleTesters.end(),
+                        [&](const puzzleTester & t){
+                          return t.all(sortedDownLine); })) {
+          std::cout << "* ";
+        } else { std::cout << "  "; };
+
         std::cout << line << std::endl;
       }
 
