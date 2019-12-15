@@ -32,8 +32,7 @@ public:
     downSortUniq(allLower);
 
     // copy the uppercase (required) characters into req
-    int nreq = std::count_if(input.begin(), input.end(), isupper);
-    reqLower.assign(nreq, 'A');
+    reqLower.resize(std::count_if(input.begin(), input.end(), isupper));
     std::copy_if(input.begin(), input.end(), reqLower.begin(), isupper);
 
     // downcase, sort, and unique all the characters in reqLower
