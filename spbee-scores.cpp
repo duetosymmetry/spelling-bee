@@ -15,11 +15,10 @@ int main(int argc, char* argv[]) {
     std::string dict;
     std::ifstream dictFile;
     std::vector<std::string> words;
-    std::vector<puzzleTester> puzzleTesters;
 
-    cxxopts::Options options(argv[0], "Solver for Frank Longo's \"Spelling Bee\" puzzles");
+    cxxopts::Options options(argv[0], "Solver for Frank Longo's \"Spelling Bee\" puzzle, with scoring");
     options
-      .positional_help("[puzzle letter strings (see below)]")
+      .positional_help("puzzle letter string (see below)")
       .show_positional_help();
 
     options.add_options()
@@ -29,12 +28,10 @@ int main(int argc, char* argv[]) {
        ->default_value("4"), "N")
       ("help", "Print this help message")
       ("positional",
-       "puzzle letter strings: For each puzzle, give a string"
+       "puzzle letter string: Give a string"
        " (without spaces, and only the characters a-z) specifying"
        " the letters that appear in the puzzle.  Mandatory letters"
-       " are to appear capitalized.  Example: \"Macilnt\"."
-       "  Multiple puzzles can be solved by giving a string for"
-       " each one.",
+       " are to appear capitalized.  Example: \"Macilnt\".",
        cxxopts::value<std::vector<std::string>>(words))
       ;
 
@@ -47,27 +44,18 @@ int main(int argc, char* argv[]) {
       exit(0);
     }
 
-    if (!result.count("positional")) { // no input, nothing to do.
+    if (1 != result.count("positional")) { // no input, nothing to do.
+      std::cout << "Need exactly 1 puzzle string" << std::endl;
       exit(0);
     }
 
-    // Validate input words
-    for (const auto& word : words) {
-      if (validInput(word))
-        puzzleTesters.push_back(puzzleTester(word));
-      else
-        std::cerr << "Ignoring invalid input: " << word << std::endl;
+    if (! validInput(words[0])) {
+      std::cerr << "Invalid input: " << words[0] << std::endl;
+      exit(0);
     }
 
-    if (!puzzleTesters.size()) { // no valid input
-      std::cerr << "No valid inputs" << std::endl;
-      exit(1);
-    }
-
-    // Set each tester's nmin
-    for (auto& puzzleTester : puzzleTesters) {
-      puzzleTester.nmin = nmin;
-    }
+    puzzleTester tester(words[0]);
+    tester.nmin = nmin;
     
     // Open dictionary file
 
@@ -81,27 +69,27 @@ int main(int argc, char* argv[]) {
     // Go through the dictionary file in one pass
 
     std::string line;
+    unsigned long totalScore = 0;
 
     while (std::getline(dictFile, line)) {
-      std::string sortedDownLine = line;
+      unsigned long wordScore = tester.score(line);
 
-      if (line.length() < nmin)
+      if (wordScore == 0)
         continue;
 
+      totalScore += wordScore;
+
+      std::string sortedDownLine = line;
       // downcase, sort, and remove dups
       downSortUniq(sortedDownLine);
 
-      if (std::any_of(puzzleTesters.begin(), puzzleTesters.end(),
-                      [&](const puzzleTester & t){ return t(sortedDownLine); })) {
+      if (tester.all(sortedDownLine))
+        std::cout << "* ";
+      else
+        std::cout << "  ";
 
-        if (std::any_of(puzzleTesters.begin(), puzzleTesters.end(),
-                        [&](const puzzleTester & t){
-                          return t.all(sortedDownLine); })) {
-          std::cout << "* ";
-        } else { std::cout << "  "; };
+      std::cout << line << " " << wordScore << std::endl;
 
-        std::cout << line << std::endl;
-      }
     }
 
     // All done!
