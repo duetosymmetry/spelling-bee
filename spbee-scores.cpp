@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
        ->default_value("/usr/share/dict/words"), "FILE")
       ("n,nmin", "Minimum word length", cxxopts::value<int>(nmin)
        ->default_value("4"), "N")
+      ("t,total", "Report total score")
       ("help", "Print this help message")
       ("positional",
        "puzzle letter string: Give a string"
@@ -94,6 +95,11 @@ int main(int argc, char* argv[]) {
 
     // All done!
     dictFile.close();
+
+    if (result.count("total")) {
+      std::cout << "---------------" << std::endl;
+      std::cout << "Total score: " << totalScore << std::endl;
+    }
 
   } catch (const cxxopts::OptionException& e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
