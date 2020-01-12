@@ -70,15 +70,12 @@ int main(int argc, char* argv[]) {
     // Go through the dictionary file in one pass
 
     std::string line;
-    unsigned long totalScore = 0;
 
     while (std::getline(dictFile, line)) {
-      unsigned long wordScore = tester.score(line);
+      unsigned long wordScore = tester.scoreAndAccumulate(line);
 
       if (wordScore == 0)
         continue;
-
-      totalScore += wordScore;
 
       std::string sortedDownLine = line;
       // downcase, sort, and remove dups
@@ -98,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     if (result.count("total")) {
       std::cout << "---------------" << std::endl;
-      std::cout << "Total score: " << totalScore << std::endl;
+      std::cout << "Total score: " << tester.getTotalScore() << std::endl;
     }
 
   } catch (const cxxopts::OptionException& e) {

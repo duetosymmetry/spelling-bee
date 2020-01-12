@@ -76,6 +76,23 @@ public:
 
     return score;
   }
+
+  // Same as score(), but also adds the word's score to a running total
+  unsigned int scoreAndAccumulate(const std::string &word) {
+    unsigned wordScore = score(word);
+
+    totalScore += wordScore;
+
+    return wordScore;
+  }
+
+  unsigned int getTotalScore() const {
+    return totalScore;
+  }
+
+  const std::string& getInput() const {
+    return input;
+  }
   
   // Functor interface
   bool operator()(const std::string &test) const {
@@ -99,4 +116,6 @@ private:
   const std::string input; // the original input
   std::string allLower; // all the letters, lowercase, unique
   std::string reqLower; // all the required letters, lowercase, unique
+
+  unsigned int totalScore = 0;
 };

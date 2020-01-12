@@ -46,12 +46,12 @@ int main(int argc, char* argv[]) {
     std::string line;
 
     while (std::getline(dictFile, line)) {
-      std::string sortedUpLine = line;
-      // upcase, sort, and remove dups
-      upSortUniq(sortedUpLine);
+      std::string sortedDownLine = line;
+      // downcase, sort, and remove dups
+      downSortUniq(sortedDownLine);
 
-      if (7 == sortedUpLine.length()) {
-        std::cout << line << ' ' << sortedUpLine << std::endl;
+      if (7 == sortedDownLine.length()) {
+        std::cout << line << ' ' << sortedDownLine << std::endl;
       };
     }
 
